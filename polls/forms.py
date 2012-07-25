@@ -5,7 +5,7 @@ from django.forms.widgets import RadioSelect, CheckboxSelectMultiple, CheckboxIn
 from polls.models import Poll, Answer
 
 
-AnswerEditFormSet = inlineformset_factory(Poll, Answer, fields=('text','id',), extra=4, max_num=5)
+AnswerEditFormSet = inlineformset_factory(Poll, Answer, fields=('text','id',), extra=4, max_num=10)
 
 class PollEditForm(forms.ModelForm):
     
