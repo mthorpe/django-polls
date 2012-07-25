@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h4>Polls</h4>
+<a id="create-polls-link" href="{% url polls_poll_create %}" title="Create New Poll">Create New Poll</a>
+<a id="my-polls-link" href="" title="My Polls">My Polls</a>
+<a id="all-polls-link" href="" title="All Polls">All Polls</a>
+
+<div id="container">
+    <table>
+        <tr>
+            <td id="question">Question</td>
+            <td id="votes">Votes</td>
+            <td id="open_time">Open Time</td>
+            <td id="end_time">End Time</td>
+            <td id="status">Status</td>
+        </tr>
+        {% for item in listing %}
+        <tr>
+            <td><a href="{% url polls_ajax_poll_detail item.poll.id %}" <span id="question">{{ item.poll.question }}</span></a></td>
+            <td id="votes">{{ item.poll.total_votes }} </td>
+            <td id="open_time">{{ item.poll.start_date }}</td>
+            <td id="end_time">{{ item.poll.end_date }}</td>
+            <td id="status">{{ item.poll.status }}</td>
+        </tr>
+        <tr>
+            <td><a href="{% url polls_poll_edit item.poll.id %}" >Edit</a></td>
+            <td><a href="" >Embed</a></td>
+            {# embed code: <div class="poll-to-load" data-poll-id="{{ item.poll.id }}"></div> #}
+            <td><a href="{% url polls_poll_results item.poll.id %}" >Results</a></td>
+            <td>{# <a href="" >Copy</a> #}
+                <form method="get" action="{% url polls_poll_create %}" id="poll_copy_form">
+                    <input type="text" name="copy_id" value="{{ item.poll.id }}" hidden="true">
+                    <input class="submit" type="submit" value="Copy">
+                </form>
+            </td>
+            <td>{# <a href="" >Delete</a> #}
+                <form method="post" action="{% url polls_poll_delete item.poll.id %}" id="poll_delete_form">
+                    {% csrf_token %}
+                    <input class="submit" type="submit" value="Delete">
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+<div class="poll-to-load" data-poll-id="5"></div>
+{% endblock %}
+{% block foot %}
+<script src="https://ajax.googleapis.com/ajax/libs/mootools/1.4.5/mootools.js"></script>
+<script src="/static/polls.js"></script>
+{% endblock %}

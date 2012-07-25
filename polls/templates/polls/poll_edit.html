@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+{% if not poll_form.instance.id %}
+<h3>Create Poll</h3>
+{% else %}
+<h3>Edit Poll</h3>
+{% endif %}
+
+{% if errors %}
+    <p>ERROR: Please fill out the entire form.</p>
+{% endif %}
+
+<form class="form" id="create-poll-form" action="" method="POST">
+{% csrf_token %}
+
+<p>
+{{ poll_form.question.label }} {{ poll_form.question }}
+</p>
+<h4>Answers</h4>
+<p>
+{{ answer_formset.management_form }}
+{% for form in answer_formset %}
+    <p>{{ form.text }}</p>
+    {# hidden fields needed for editing form #}
+    {% for hidden in form.hidden_fields %}
+        <p>{{ hidden }} </p>
+    {% endfor %}
+{% endfor %}
+
+</p>
+<input type="button" value="Add Answer">
+<p>
+{{ poll_form.allow_multiple_selections.label }} {{ poll_form.allow_multiple_selections }}
+{{ poll_form.randomize_answer_order.label }} {{ poll_form.randomize_answer_order }}
+{{ poll_form.allow_user_answers.label }} {{ poll_form.allow_user_answers }} 
+</p>
+{{ poll_form.number_selections_allowed.label }} {{ poll_form.number_selections_allowed }}
+
+<h4>Open and Close Times</h4>
+<p>
+{{ poll_form.start_date.label }}
+{{ poll_form.start_date }}
+{{ poll_form.end_date.label }}
+{{ poll_form.end_date }}
+</p>
+
+<h4>Results</h4>
+<p>
+{{ poll_form.results_displayed.label }} {{ poll_form.results_displayed }}
+{{ poll_form.results_require_voting.label }} {{ poll_form.results_require_voting }}
+</p>
+
+<h4>Repeat Voters</h4>
+<p>
+{{ poll_form.repeat_voting.label }} {{ poll_form.repeat_voting }}
+</p>
+
+{% if not poll_form.instance.id %}
+<input class="submit" type="submit" value="Create Poll">
+{% else %}
+<input class="submit" type="submit" value="Edit Poll">
+{% endif %}
+</form>
+{% endblock %}
+{% block foot %}
+<script src="https://ajax.googleapis.com/ajax/libs/mootools/1.4.5/mootools.js"></script>
+<script src="/static/polls.js"></script>
+{% endblock %}

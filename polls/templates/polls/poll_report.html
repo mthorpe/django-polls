@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load polls_extras %}
+
+{% block content %}
+<p>
+{# <a href="">Copy</a> #}
+<a href="{% url polls_poll_edit poll.id %}" >Edit</a>
+{# <a href="" >Reset</a> #}
+<a href="" >Embed</a>
+<a href="{% url polls_poll_report poll.id %}" >Results</a>
+{# <a href="" >Delete</a> #}
+
+<form method="get" action="{% url polls_poll_create %}" id="poll_copy_form">
+    <input type="text" name="copy_id" value="{{ poll.id }}" hidden="true">
+    <input class="submit" type="submit" value="Copy">
+</form>
+
+<form method="post" action="{% url polls_poll_reset poll.id %}" id="poll_reset_form">
+    {% csrf_token %}
+    <input class="submit" type="submit" value="Reset">
+</form>
+
+<form method="post" action="{% url polls_poll_delete poll.id %}" id="poll_delete_form">
+    {% csrf_token %}
+    <input class="submit" type="submit" value="Delete">
+</form>
+
+</p>
+<h3>{{ poll.question }}</h3>
+<h4>Poll Results</h4>
+
+<div id="container">
+    <table>
+        <tr>
+            <td id="answer">Answer</td>
+            <td id="count">Count</td>
+            <td id="percent">Percent</td>
+        </tr>
+        
+        {% for answer in poll.answers_list %}
+        <tr>
+            <td id="answer">{{ answer.text }}</td>
+            <td id="count">{{ answer.votes }}</td>
+            <td id="percent">{{ answer.votes|percentage:poll.total_votes }}</td>
+        </tr>
+        {% endfor %}
+        {% if poll.allow_user_answers %}
+        <tr>
+            <td id="answer">Other</td>
+            <td id="other-votes">{{ poll.other_total }}</td>
+            <td id="other-percent">{{ poll.other_total|percentage:poll.total_votes }}</td>
+            {% for user_answer in poll.user_answers_list %}
+            <tr>
+                <td></td>
+                <td id="user_answer">{{ user_answer.text }}</td>
+            </tr>
+            {% endfor %}
+        </tr>
+        {% endif %}
+    </table>
+</div>
+
+<a id="export-link" href="{% url polls_poll_export_csv poll.id %}" title="Export to CSV">Export to CSV</a>
+{# <a id="reset-results-link" href="" title="Reset Results">Reset Results</a> #}
+
+
+{% endblock %}

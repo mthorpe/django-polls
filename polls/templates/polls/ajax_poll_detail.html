@@ -1,0 +1,52 @@
+{% load polls_extras %}
+
+<h3>{{ poll.question }}</h3>
+
+{% if closed %}
+    <p>I'm sorry, the poll is currently closed.</p>
+{% else %}
+    
+    <p>
+    {% if not just_voted_message %}
+        {% if not poll.number_answers_allowed == 0 and not poll.number_answers_allowed == 1%}
+        Select {{ poll.get_number_answers_allowed_display }} answers.
+        {% elif poll.number_answers_allowed == 0 %}
+        Select unlimited answers.
+        {% endif %}
+
+        You may vote {{ poll.get_repeat_voting_display }}.
+    {% else %}
+        <p>Thanks for voting! Your vote has been counted. {{ poll.repeat_voting|next_vote_time }}</p>
+    {% endif %}
+    </p>
+
+    {% if no_choice_error %}
+        <p>You didn't select a choice.</p>
+    {% endif %}
+    
+    {% if too_many_answers_error %}
+        <p>
+        You may only select {{ poll.get_number_answers_allowed_display }} answers.
+        Remove additional selections and submit your vote.
+        </p>
+    {% endif %}
+
+    <form id="poll-form" action="" method="post">
+    {% csrf_token %}
+    <table>
+    {% for field in poll_voting_form %}
+        {{ field.label_tag }} {{ field }}
+    {% endfor %}
+    {% for field in user_answer_form %}
+        {{ field }}
+    {% endfor %}
+        <tr>
+            <td><input id="vote-button" type="submit" value="Vote" /></td>
+        </tr>
+    </table>
+    </form>
+
+        {% if not poll.results_require_voting and not poll.results_displayed == 'None'%}
+        <a id="view-results-link" href="{% url polls_poll_results poll.id %}" title="View Results">View Results</a>
+        {% endif %}
+{% endif %}

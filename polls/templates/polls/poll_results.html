@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load polls_extras %}
+
+{% block content %}
+
+<h3>{{ poll.question }}</h3>
+
+{% if just_voted_message %}
+    <p>Thanks for voting! Your vote has been counted. {{ poll.repeat_voting|next_vote_time }}</p>
+{% elif already_voted_message %}
+    <p>You've already voted. {{ poll.repeat_voting|next_vote_time }}</p>
+{% else %}
+    <p>You may vote {{ poll.get_repeat_voting_display }}.</p>
+{% endif %}
+
+<div id="container">
+    <table>
+        {% for answer in poll.answers_list %}
+        <tr>
+            <td id="answer">{{ answer.text }}</td>
+            {% if poll.results_displayed == 'Percentage' %}
+                <td id="percent">{{ answer.votes|percentage:poll.total_votes }}</td>
+            {% else %}
+                <td id="votes">{{ answer.votes }}</td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+        <tr>
+            {% if poll.allow_user_answers %}
+                <td id="answer">Other</td>
+                {% if poll.results_displayed == "Percentage" %}
+                    <td id="other-percent">{{ poll.other_total|percentage:poll.total_votes }}</td>
+                {% else %}
+                    <td id="other-votes">{{ poll.other_total }}</td>
+                {% endif %}                
+            {% endif %}
+        </tr>
+    </table>
+    {% if not poll.repeat_voting == 'Once' %}
+        <a id="back-to-poll-link" href="{% url polls_ajax_poll_detail poll.id %}" title="Back to Poll">Back to Poll</a>
+    {% endif %}
+</div>
+{% endblock %}
