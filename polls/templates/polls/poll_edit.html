@@ -17,18 +17,21 @@
 {{ poll_form.question.label }} {{ poll_form.question }}
 </p>
 <h4>Answers</h4>
-<p>
+<ul id="answer-list">
 {{ answer_formset.management_form }}
 {% for form in answer_formset %}
-    <p>{{ form.text }}</p>
+    <li>
+    {{ form.text }}
+    <input id="{{ forloop.counter }}" class="delete-answer-button" type="button" value="Delete">
+    </li>
     {# hidden fields needed for editing form #}
     {% for hidden in form.hidden_fields %}
-        <p>{{ hidden }} </p>
+        {{ hidden }}
     {% endfor %}
 {% endfor %}
 
-</p>
-<input type="button" value="Add Answer">
+</ul>
+<input id="add-answer-button" type="button" value="Add Answer">
 <p>
 {{ poll_form.allow_multiple_selections.label }} {{ poll_form.allow_multiple_selections }}
 {{ poll_form.randomize_answer_order.label }} {{ poll_form.randomize_answer_order }}
