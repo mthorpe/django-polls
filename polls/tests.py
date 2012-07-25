@@ -13,7 +13,7 @@ from polls.models import *
 from polls.forms import *
 
 
-#Helper function
+#Helper function to create a poll with answers
 def create_sample_poll(user, site):
     
     answer_set = []
@@ -165,11 +165,6 @@ class PollTests(TestCase):
     def test_delete_poll(self):
         self.client.login(username='user', password='password')
         poll = create_sample_poll(self.user, self.site)
-        #Check poll exists
-        response = self.client.get(reverse('polls_ajax_poll_detail', kwargs={
-            'poll_id': poll.id,
-        }))
-        self.assertEquals(response.status_code, 200)
         
         #Delete the poll
         response = self.client.post(reverse('polls_poll_delete', kwargs={
@@ -218,9 +213,6 @@ class PollTests(TestCase):
             'poll_id': poll.id,
         }), {'answers': [1, 2],})
         self.assertEquals(response.status_code, 200)
-    
-        
-        
-        
+  
         
         

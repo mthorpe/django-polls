@@ -103,9 +103,7 @@ def poll_edit(request, poll_id=None):
         'errors': False,
     })
     
-def poll_results(request, poll_id=None):
-
-    
+def poll_results(request, poll_id=None):  
     #Check if the poll id exists
     poll = get_object_or_404(Poll, pk=poll_id)
     poll.answers_list = poll.answers.all()
@@ -148,7 +146,6 @@ def ajax_poll_detail(request, poll_id):
     """
     #delete session - for testing
     #del request.session['polls-voting-history']
-    
     now = timezone.now()    
     next_vote_date = None
     can_vote = True
@@ -199,7 +196,6 @@ def ajax_poll_detail(request, poll_id):
     
     #check poll is closed
     if now > poll.end_date or now < poll.start_date:
-        
         return render(request, "polls/ajax_poll_detail.html", {
             'poll': poll,
             'closed': True,
@@ -221,19 +217,18 @@ def ajax_poll_detail(request, poll_id):
         """
     #When user votes
     if request.method == 'POST':
-
         #Check an answer was selected
         selected = request.POST.getlist('answers')        
+        
         #If no answer selected
         if len(selected) == 0:
-
             return render(request, 'polls/ajax_poll_detail.html', {
                 'poll': poll,
                 'poll_voting_form': poll_voting_form,
                 'user_answer_form': user_answer_form,
                 'no_choice_error': True,
             })
-        #Increase the vote tally
+        #Answers selected
         else:
             #Selected answers is within limit (0 == unlimited selections)
             if poll.number_answers_allowed == 0 or len(selected) <= poll.number_answers_allowed:
@@ -263,7 +258,7 @@ def ajax_poll_detail(request, poll_id):
                             
                 request.session['polls-voting-history'] = poll_voting_history
                 
-                #If the poll is longer than a month, set the expiration date to the end of the poll
+                #If the poll lasts longer than a month, set the expiration date to the end of the poll
                 one_month = now + timedelta(days=30)
                 if(poll.end_date > one_month):
                     request.session.set_expiry(poll.end_date)
@@ -271,12 +266,11 @@ def ajax_poll_detail(request, poll_id):
                     request.session.set_expiry(now + timedelta(days=30))                
             #Selected answers over limit
             else:
-                
+                #Keep track of which selections were made
+                #Form needs to user answers selected
                 initial_selected = {}
                 for selection in selected:
                     initial_selected[selection] = True
-                
-                #Form needs to be regenerated to keep selected user answers
                 
                 user_answer_form = None
                 #Only need for checkboxes... radio buttons can't be over limit
@@ -341,12 +335,12 @@ def poll_landing(request):
             poll.status = "Open"
         else:
             poll.status = "Closed"
-            
+        
+        #Set total votes, needed for percentages
         if not poll.answers_list.aggregate(Sum('votes'))['votes__sum'] == None:
             poll.total_votes = poll.answers_list.aggregate(Sum('votes'))['votes__sum']
         else:
             poll.total_votes = 0
-        
         
         #'Other' only displayed in results if user answers are allowed
         if poll.allow_user_answers:
@@ -366,7 +360,6 @@ def poll_report(request, poll_id):
     """
     This is the admin results/report view
     """
-   
     #Check if the poll exists
     poll = get_object_or_404(Poll, pk=poll_id)
     poll.answers_list = poll.answers.all()
