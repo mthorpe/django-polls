@@ -335,6 +335,12 @@ def poll_landing(request):
             poll.status = "Open"
         else:
             poll.status = "Closed"
+            
+        #user poll
+        if poll.author == request.user:
+            poll.user_poll = True
+        else:
+            poll.user_poll = False
         
         #Set total votes, needed for percentages
         if not poll.answers_list.aggregate(Sum('votes'))['votes__sum'] == None:
