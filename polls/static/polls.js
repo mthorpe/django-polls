@@ -71,23 +71,48 @@ addEvent('domready', function () {
     //unless the allow multiple selections box is checked
     pollEditForm = $('create-poll-form');
     if (pollEditForm) {
-        allow_multiple_selections = $('id_allow_multiple_selections');
-        number_selections_allowed = $('id_number_selections_allowed');
-        if (allow_multiple_selections) {
+        allowMultipleSelections = $('id_allow_multiple_selections');
+        numberSelectionsAllowed = $('id_number_selections_allowed');
+        if (allowMultipleSelections) {
             
-            if (allow_multiple_selections.checked) {
-                number_selections_allowed.style.display = '';                
+            if (allowMultipleSelections.checked) {
+                numberSelectionsAllowed.style.display = '';                
             } else {
-                number_selections_allowed.style.display = 'none'; 
+                numberSelectionsAllowed.style.display = 'none'; 
             }
             
-            allow_multiple_selections.addEvent('click', function (evt) {
-                if (allow_multiple_selections.checked) {
-                    number_selections_allowed.style.display = '';
+            allowMultipleSelections.addEvent('click', function (evt) {
+                if (allowMultipleSelections.checked) {
+                    numberSelectionsAllowed.style.display = '';
                 } else {
-                    number_selections_allowed.style.display = 'none';
+                    numberSelectionsAllowed.style.display = 'none';
                 }
             });
+        }
+        
+        addAnswerButton = $('add-answer-button')
+        if (addAnswerButton) {
+            
+            answerList = $('answer-list');
+            
+            addAnswerButton.addEvent('click', function (evt) {
+                addAnswerField(answerList);
+            });
+        }
+        
+        var addAnswerField = function (parent) {
+            var newListElement = new Element('li').inject(parent);
+            
+            var newField = new Element('input', {
+                id: 'fieldId',
+                type: 'text',
+                name: 'fieldId',
+                maxlength: '500'
+            }).inject(newListElement);
+        }
+        
+        var deleteField = function () {
+            
         }
     }
 });
