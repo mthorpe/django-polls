@@ -82,7 +82,7 @@ class PollTests(TestCase):
             'answers-0-text': 'Nick',
             'answers-1-text': 'Lunchbox',
             'answers-2-text': 'Ben',
-            'answers-TOTAL_FORMS': u'1',
+            'answers-TOTAL_FORMS': u'3',
             'answers-INITIAL_FORMS': u'0',
             'answers-MAX_NUM_FORMS': u'',
         }
@@ -107,7 +107,7 @@ class PollTests(TestCase):
             'allow_user_answers': False,
             'registration_required': False,
         })
-        self.assertEquals(pf.is_valid(), True)
+        self.assertTrue(pf.is_valid())
         
         #Form without a question should not validate
         pf = PollEditForm({
@@ -123,7 +123,7 @@ class PollTests(TestCase):
             'allow_user_answers': False,
             'registration_required': False,
         })
-        self.assertEquals(pf.is_valid(), False)
+        self.assertFalse(pf.is_valid())
         
         #Form without an end date should not validate
         pf = PollEditForm({
@@ -139,7 +139,7 @@ class PollTests(TestCase):
             'allow_user_answers': False,
             'registration_required': False,
         })
-        self.assertEquals(pf.is_valid(), False)
+        self.assertFalse(pf.is_valid())
         
     def test_answer_edit_formset(self):
         
@@ -152,7 +152,7 @@ class PollTests(TestCase):
             'answers-INITIAL_FORMS': u'0',
             'answers-MAX_NUM_FORMS': u'',
         })
-        self.assertEquals(af.is_valid(), True)
+        self.assertTrue(af.is_valid())
         
     def test_user_answer_form(self):
         
@@ -160,7 +160,7 @@ class PollTests(TestCase):
         ua = UserAnswerForm({
             'user_answer': 'James',
         }) 
-        self.assertEquals(ua.is_valid(), True)
+        self.assertTrue(ua.is_valid())
         
     def test_delete_poll(self):
         self.client.login(username='user', password='password')
