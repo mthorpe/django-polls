@@ -16,7 +16,16 @@
 
         You may vote {{ poll.get_repeat_voting_display }}.
     {% else %}
-        <p>Thanks for voting! Your vote has been counted. {{ poll.repeat_voting|next_vote_time }}</p>
+        <p>
+        Thanks for voting! Your vote has been counted.
+        {% if poll.repeat_voting == 'Daily' %}
+            You can vote again tomorrow.
+        {% elif poll.repeat_voting == 'Weekly' %}
+            You can vote again next week.
+        {% elif poll.repeat_voting == 'Unlimited' %}
+            You can vote again anytime.
+        {% endif %}
+        </p>
     {% endif %}
     </p>
 
