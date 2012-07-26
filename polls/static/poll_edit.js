@@ -8,17 +8,13 @@ addEvent('domready', function () {
         if (allowMultipleSelections) {
             
             if (allowMultipleSelections.checked) {
-                numberSelectionsAllowed.style.display = '';                
+                numberSelectionsAllowed.show();                
             } else {
-                numberSelectionsAllowed.style.display = 'none'; 
+                numberSelectionsAllowed.hide(); 
             }
             
             allowMultipleSelections.addEvent('click', function (evt) {
-                if (allowMultipleSelections.checked) {
-                    numberSelectionsAllowed.style.display = '';
-                } else {
-                    numberSelectionsAllowed.style.display = 'none';
-                }
+                numberSelectionsAllowed.toggle();
             });
         }
         
