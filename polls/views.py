@@ -157,6 +157,7 @@ def ajax_poll_detail(request, poll_id):
     #Put answers in a tuple and pass into the form
     answer_choices = []
     for answer in answers:
+        print(answer)
         answer_choices.append((answer.id, answer.text))            
     
     user_answer_form = None

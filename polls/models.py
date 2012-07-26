@@ -41,7 +41,7 @@ class Poll(models.Model):
     
     repeat_voting = models.CharField(max_length=9, choices=REPEAT_VOTING_CHOICES, blank=False, default='Daily')
     
-    number_answers_allowed = models.IntegerField(max_length=1, choices=NUMBER_OF_SELECTIONS, blank=False, default=1)
+    number_answers_allowed = models.IntegerField(choices=NUMBER_OF_SELECTIONS, blank=False, default=1)
     randomize_answer_order = models.BooleanField(default=False)
     allow_user_answers = models.BooleanField(default=False)
     
@@ -63,7 +63,7 @@ class Answer(models.Model):
         order_with_respect_to = 'poll'
     
     def __unicode__(self):
-        return str(self.id) +': ' + str(self.text) + ' (Poll: ' + str(self.poll) + ')'
+        return '%s : %s (Poll: %s)' % (self.id, self.text, self.poll)
 
     
 class UserAnswer(models.Model):
@@ -71,6 +71,6 @@ class UserAnswer(models.Model):
     text = models.CharField(max_length=500)
     
     def __unicode__(self):
-        return str(self.text) + ' (Poll: ' + str(self.poll) + ')'
+        return '%s (Poll: %s)' % (self.text, self.poll)
     
     
