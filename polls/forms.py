@@ -30,7 +30,7 @@ class PollEditForm(forms.ModelForm):
         super(PollEditForm, self).__init__(*args, **kwargs)
         
         #initialize number of selections
-        if not self.instance.number_answers_allowed == 1:
+        if self.instance.number_answers_allowed != 1:
             self.fields['number_selections_allowed'].initial = self.instance.number_answers_allowed
             self.fields['allow_multiple_selections'].initial = True        
     

@@ -31,9 +31,8 @@ addEvent('domready', function () {
         
         deleteAnswerButtons = $$('.delete-answer-button');
         if (deleteAnswerButtons) {
-            deleteAnswerButtons.addEvent('click', function (evt) {
-                deleteButton = $(evt.target.id);
-                deleteAnswerField(deleteButton);
+            deleteAnswerButtons.addEvent('click', function () {
+                deleteAnswerField(this);
             });
         }
         

@@ -64,9 +64,7 @@ def poll_edit(request, poll_id=None):
          
     #When copying
     elif request.GET.get('copy_id'):
-        poll = get_object_or_404(Poll, pk=request.GET.get('copy_id'))
-        
-        #print(poll.number_selections_allowed)
+        poll = get_object_or_404(Poll, pk=request.GET['copy_id'])
         
         if not poll.number_answers_allowed == 1:
             poll.allow_multiple_selections = True
@@ -85,7 +83,7 @@ def poll_edit(request, poll_id=None):
             'registration_required': poll.registration_required,}
         )
         
-        answers = poll.answers.all().values()
+        answers = poll.answers.values()
         answer_formset = AnswerEditFormSet(initial=answers)
     else:
         #Editing
@@ -154,7 +152,7 @@ def ajax_poll_detail(request, poll_id):
     poll = get_object_or_404(Poll, pk=poll_id)
     answers = poll.answers.all()
     
-    poll_voting_history = {}
+    #poll_voting_history = {}
     
     #Put answers in a tuple and pass into the form
     answer_choices = []
@@ -174,19 +172,13 @@ def ajax_poll_detail(request, poll_id):
             user_answer_form = UserAnswerForm()
     
     #session information
-    if not 'polls-voting-history' in request.session:
-        #set the session to an empty dictionary
-        request.session['polls-voting-history'] = poll_voting_history
-    else:
-        #set the dictionary to the session data
-        poll_voting_history = request.session['polls-voting-history']
+    request.session.setdefault('polls-voting-history', None);
     
     #Determine if user has voted in this poll
-    if poll.id in poll_voting_history:
-        next_vote_date = poll_voting_history[poll.id]
-        
+    if poll.id in request.session['polls-voting-history']:
+        next_vote_date = request.session['polls-voting-history'][poll.id]
         #None means user can vote unlimited
-        if not next_vote_date == None:
+        if next_vote_date:
             #Compare date to now for voting eligibility
             if now <= next_vote_date:
                 can_vote = False
@@ -205,23 +197,14 @@ def ajax_poll_detail(request, poll_id):
     if poll.randomize_answer_order:
         #randomly order answers
         answers = answers.order_by('?')
-        """
-        This will be deleted after ajax views are created
-        Might need code for reordering the answers
-        random_order = []
-        for answer in answers:
-            need id of each answer in random order
-            random_order += [answer.id]
-        set the answer order to the random order
-        poll.set_answer_order(random_order)
-        """
+
     #When user votes
     if request.method == 'POST':
         #Check an answer was selected
         selected = request.POST.getlist('answers')        
         
         #If no answer selected
-        if len(selected) == 0:
+        if not selected:
             return render(request, 'polls/ajax_poll_detail.html', {
                 'poll': poll,
                 'poll_voting_form': poll_voting_form,
@@ -254,9 +237,9 @@ def ajax_poll_detail(request, poll_id):
                     next_vote_date = poll.end_date + timedelta(days=1)
                 
                 #add key, value to dictionary
-                poll_voting_history[poll.id] = next_vote_date
+                request.session['polls-voting-history'][poll.id] = next_vote_date
                             
-                request.session['polls-voting-history'] = poll_voting_history
+                #request.session['polls-voting-history'] = poll_voting_history
                 
                 #If the poll lasts longer than a month, set the expiration date to the end of the poll
                 one_month = now + timedelta(days=30)
@@ -280,7 +263,7 @@ def ajax_poll_detail(request, poll_id):
                         poll_voting_form = VotingCheckboxForm(choices=answer_choices, user_input=True, selected_answers=initial_selected)
                         user_answer_form = UserAnswerForm()
                 
-                return render(request, "polls/ajax_poll_detail.html", {
+                return render(request, 'polls/ajax_poll_detail.html', {
                     'poll': poll,
                     'poll_voting_form': poll_voting_form,
                     'user_answer_form': user_answer_form,
@@ -297,7 +280,7 @@ def ajax_poll_detail(request, poll_id):
     if not can_vote:
         request.session['polls-already-voted'] = True
         return HttpResponseRedirect(reverse('polls_poll_results', args=(poll_id,))) 
-    elif can_vote or poll.repeat_voting == "Unlimited" or len(poll_voting_history) == 0 or next_vote_date == None:
+    elif can_vote or poll.repeat_voting == 'Unlimited' or not request.session['polls-already-voted'] or not next_vote_date:
         
         #If user just voted, display message
         #Check for session that says user just voted
@@ -405,16 +388,10 @@ def poll_reset(request, poll_id):
     if request.method == 'POST':
         #Check if poll exists
         poll = get_object_or_404(Poll, pk=poll_id)
-        answers = poll.answers.all()
-        user_answers = poll.user_answers.all()
-        
         #reset answers to 0 votes
-        answers.update(votes=0)
-            
-        #'Other' only displayed in results if user answers are allowed
-        if user_answers:
-            #Delete all user answers
-            user_answers.delete()
+        poll.answers.all().update(votes=0)
+         #Delete all user answers
+        user_answers = poll.user_answers.all().delete()
         
         return HttpResponseRedirect(reverse('polls_poll_report', args=(poll_id,)))
     return HttpResponseBadRequest("Not a POST request or bad POST data.")
