@@ -256,16 +256,13 @@ def ajax_poll_detail(request, poll_id):
         
         user_answer_form = None
         #Determine which form to display based on how many answers user is allowed to select
-        if not poll.number_answers_allowed == 1:
-            poll_voting_form = VotingCheckboxForm(choices=answer_choices, user_input=False)
-            if poll.allow_user_answers:
-                poll_voting_form = VotingCheckboxForm(choices=answer_choices, user_input=True)
-                user_answer_form = UserAnswerForm()
+        if poll.number_answers_allowed != 1:
+            poll_voting_form = VotingCheckboxForm(choices=answer_choices, user_input=poll.allow_user_answers)
         else:
-            poll_voting_form = VotingRadioForm(choices=answer_choices, user_input=False)
-            if poll.allow_user_answers:
-                poll_voting_form = VotingRadioForm(choices=answer_choices, user_input=True)
-                user_answer_form = UserAnswerForm()
+            poll_voting_form = VotingRadioForm(choices=answer_choices, user_input=poll.allow_user_answers)
+            
+        if poll.allow_user_answers:
+            user_answer_form = UserAnswerForm()
 
         #randomizing answer order
         if poll.randomize_answer_order:
