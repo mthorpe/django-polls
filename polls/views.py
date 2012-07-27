@@ -85,15 +85,10 @@ def poll_edit(request, poll_id=None):
         
         answers = poll.answers.values()
         answer_formset = AnswerEditFormSet(initial=answers)
+    #Creating or editing
     else:
-        #Editing
-        if editing:
-            poll_form = PollEditForm(instance=poll)
-            answer_formset = AnswerEditFormSet(instance=poll)
-        #Creating
-        else:
-            poll_form = PollEditForm()
-            answer_formset = AnswerEditFormSet(instance=Poll())
+        poll_form = PollEditForm(instance=poll)
+        answer_formset = AnswerEditFormSet(instance=(poll or Poll()))
     
     return render(request, "polls/poll_edit.html", {
         'poll_form': poll_form,
@@ -146,59 +141,18 @@ def ajax_poll_detail(request, poll_id):
     #del request.session['polls-voting-history']
     now = timezone.now()    
     next_vote_date = None
-    can_vote = True
     
     #Check if the poll id exists
     poll = get_object_or_404(Poll, pk=poll_id)
     answers = poll.answers.all()
     
-    #poll_voting_history = {}
-    
-    #Put answers in a tuple and pass into the form
-    answer_choices = []
-    for answer in answers:
-        print(answer)
-        answer_choices.append((answer.id, answer.text))            
-    
-    user_answer_form = None
-    if not poll.number_answers_allowed == 1:
-        poll_voting_form = VotingCheckboxForm(choices=answer_choices, user_input=False)
-        if poll.allow_user_answers:
-            poll_voting_form = VotingCheckboxForm(choices=answer_choices, user_input=True)
-            user_answer_form = UserAnswerForm()
-    else:
-        poll_voting_form = VotingRadioForm(choices=answer_choices, user_input=False)
-        if poll.allow_user_answers:
-            poll_voting_form = VotingRadioForm(choices=answer_choices, user_input=True)
-            user_answer_form = UserAnswerForm()
-    
-    #session information
-    request.session.setdefault('polls-voting-history', None);
-    
-    #Determine if user has voted in this poll
-    if poll.id in request.session['polls-voting-history']:
-        next_vote_date = request.session['polls-voting-history'][poll.id]
-        #None means user can vote unlimited
-        if next_vote_date:
-            #Compare date to now for voting eligibility
-            if now <= next_vote_date:
-                can_vote = False
-
-    #Number of Selections
-    selections_allowed = poll.number_answers_allowed
-    
     #check poll is closed
     if now > poll.end_date or now < poll.start_date:
+        poll.closed = True
         return render(request, "polls/ajax_poll_detail.html", {
             'poll': poll,
-            'closed': True,
         })
- 
-    #randomizing answer order
-    if poll.randomize_answer_order:
-        #randomly order answers
-        answers = answers.order_by('?')
-
+                
     #When user votes
     if request.method == 'POST':
         #Check an answer was selected
@@ -239,8 +193,6 @@ def ajax_poll_detail(request, poll_id):
                 
                 #add key, value to dictionary
                 request.session['polls-voting-history'][poll.id] = next_vote_date
-                            
-                #request.session['polls-voting-history'] = poll_voting_history
                 
                 #If the poll lasts longer than a month, set the expiration date to the end of the poll
                 one_month = now + timedelta(days=30)
@@ -251,7 +203,7 @@ def ajax_poll_detail(request, poll_id):
             #Selected answers over limit
             else:
                 #Keep track of which selections were made
-                #Form needs to user answers selected
+                #Form needs to keep user answers selected
                 initial_selected = {}
                 for selection in selected:
                     initial_selected[selection] = True
@@ -277,12 +229,49 @@ def ajax_poll_detail(request, poll_id):
         if not poll.results_displayed  == 'None':
             return HttpResponseRedirect(reverse('polls_poll_results', args=(poll_id,)))
     
+    #GET Request
+    #Assume user can vote until session info is checked
+    can_vote = True
+    #session information
+    request.session.setdefault('polls-voting-history', None);
+    #Determine if user has voted in this poll
+    if poll.id in request.session['polls-voting-history']:
+        next_vote_date = request.session['polls-voting-history'][poll.id]
+        #None means user can vote unlimited
+        if next_vote_date:
+            #Compare date to now for voting eligibility
+            if now.date <= next_vote_date.date:
+                can_vote = False
+    
     #if unable to vote, set already voted session variable to true
     if not can_vote:
         request.session['polls-already-voted'] = True
         return HttpResponseRedirect(reverse('polls_poll_results', args=(poll_id,))) 
     elif can_vote or poll.repeat_voting == 'Unlimited' or not request.session['polls-already-voted'] or not next_vote_date:
         
+        #Put answers in a tuple and pass into the form
+        answer_choices = []
+        for answer in answers:
+            answer_choices.append((answer.id, answer.text))            
+        
+        user_answer_form = None
+        #Determine which form to display based on how many answers user is allowed to select
+        if not poll.number_answers_allowed == 1:
+            poll_voting_form = VotingCheckboxForm(choices=answer_choices, user_input=False)
+            if poll.allow_user_answers:
+                poll_voting_form = VotingCheckboxForm(choices=answer_choices, user_input=True)
+                user_answer_form = UserAnswerForm()
+        else:
+            poll_voting_form = VotingRadioForm(choices=answer_choices, user_input=False)
+            if poll.allow_user_answers:
+                poll_voting_form = VotingRadioForm(choices=answer_choices, user_input=True)
+                user_answer_form = UserAnswerForm()
+
+        #randomizing answer order
+        if poll.randomize_answer_order:
+            #randomly order answers
+            answers = answers.order_by('?')
+
         #If user just voted, display message
         #Check for session that says user just voted
         if not 'polls-just-voted' in request.session:
