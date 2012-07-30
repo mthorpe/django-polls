@@ -12,6 +12,8 @@ addEvent('domready', function () {
                 pollFormVoting(el, pollId, pollRequest);
                 //Add functionality for View Results Link
                 viewResults(el, pollId, pollRequest);
+                //Add functionality for Back to Poll Link
+                backToPoll(pollRequest);
             }
         });
         pollRequest.send();
@@ -57,7 +59,7 @@ addEvent('domready', function () {
     };
     
     //Display the back to poll link within the div
-    var backToPoll = function (pollRequest) {    
+    var backToPoll = function (pollRequest) {  
         var backToPollLink = $('back-to-poll-link');
         if (backToPollLink) {
             backToPollLink.addEvent('click', function (evt) {
