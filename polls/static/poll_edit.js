@@ -18,10 +18,19 @@ addEvent('domready', function () {
             });
         }
         
+        answerList = $('answer-list');
+        
+        if (answerList) {
+            new Sortables('#sortable-answer-list UL', {
+                clone: true,
+                handle: true,
+                revert: true,
+                opacity: 0.7
+            });
+        }
+        
         addAnswerButton = $('add-answer-button');
         if (addAnswerButton) {
-            
-            answerList = $('answer-list');
             totalForms = $('id_answers-TOTAL_FORMS');
             
             addAnswerButton.addEvent('click', function () {
@@ -98,5 +107,5 @@ addEvent('domready', function () {
                 answerPollField.destroy();
             }
         }
-    }
+    } 
 });
