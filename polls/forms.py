@@ -39,7 +39,7 @@ class PollEditForm(forms.ModelForm):
         exclude = ('author', 'site', 'number_answers_allowed')
         widgets = {
             'results_displayed': forms.RadioSelect(),
-        }
+        } 
     
     def save(self, commit=True):
         
@@ -54,13 +54,22 @@ class PollEditForm(forms.ModelForm):
         if commit:
             p.save()
             
-        return p   
+        return p
+        
+    #def clean(self):
+        #cleaned_data = super(PollEditForm, self).clean()
+        
+        #if self._errors:
+            #raise forms.ValidationError('Please complete the entire form')
+        
+        #return cleaned_data
+        
 
 class VotingRadioForm(forms.Form):
-    answers = forms.ChoiceField(widget=RadioSelect, required=True)
+    answers = forms.ChoiceField(widget=RadioSelect, required=True)   
     
     def __init__(self, *args, **kwargs):
-        
+
         choices = kwargs.pop('choices', None)
         user_input = kwargs.pop('user_input', False)
         super(VotingRadioForm, self).__init__(*args, **kwargs)
@@ -70,11 +79,21 @@ class VotingRadioForm(forms.Form):
             
         if user_input:
             self.fields['answers'].choices.append(('0', 'Other'))
+            
+    def clean(self):
+        cleaned_data = super(VotingRadioForm, self).clean()
+        answers = cleaned_data.get('answers')
+        
+        if not answers:
+            raise forms.ValidationError('You must select a choice')
+        
+        return cleaned_data   
     
 class VotingCheckboxForm(forms.Form):
     answers = forms.MultipleChoiceField(widget=CheckboxSelectMultiple, required=True)
     
     def __init__(self, *args, **kwargs):
+
         choices = kwargs.pop('choices', None)
         selected_answers = kwargs.pop('selected_answers', None)
         user_input = kwargs.pop('user_input', False)
@@ -88,6 +107,15 @@ class VotingCheckboxForm(forms.Form):
         
         if user_input:
             self.fields['answers'].choices.append(('0', 'Others'))
+            
+    def clean(self):
+        cleaned_data = super(VotingCheckboxForm, self).clean()
+        answers = cleaned_data.get('answers')
+        
+        if not answers:
+            raise forms.ValidationError('You must select a choice')
+        
+        return cleaned_data        
 
 class UserAnswerForm(forms.Form):
     user_answer = forms.CharField()

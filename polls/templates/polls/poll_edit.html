@@ -10,6 +10,10 @@
     <p>ERROR: Please fill out the entire form.</p>
 {% endif %}
 
+{% if form.non_field_errors %}
+    {{ form.errors }}
+{% endif %}
+
 <form class="form" id="create-poll-form" action="" method="POST">
 {% csrf_token %}
 
@@ -17,20 +21,21 @@
 {{ poll_form.question.label }} {{ poll_form.question }}
 </p>
 <h4>Answers</h4>
-<ul id="answer-list">
-{{ answer_formset.management_form }}
-{% for form in answer_formset %}
-    <li>
-    {{ form.text }}
-    <input id="{{ forloop.counter }}" class="delete-answer-button" type="button" value="Delete">
-    </li>
-    {# hidden fields needed for editing form #}
-    {% for hidden in form.hidden_fields %}
-        {{ hidden }}
+<div id="sortable-answer-list">
+    <ul id="answer-list">
+    {{ answer_formset.management_form }}
+    {% for form in answer_formset %}
+        <li>
+        {{ form.text }}
+        <input id="{{ forloop.counter }}" class="delete-answer-button" type="button" value="Delete">
+        </li>
+        {# hidden fields needed for editing form #}
+        {% for hidden in form.hidden_fields %}
+            {{ hidden }}
+        {% endfor %}
     {% endfor %}
-{% endfor %}
-
-</ul>
+    </ul>
+</div>
 <input id="add-answer-button" type="button" value="Add Answer">
 <p>
 {{ poll_form.allow_multiple_selections.label }} {{ poll_form.allow_multiple_selections }}

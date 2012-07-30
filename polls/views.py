@@ -87,8 +87,12 @@ def poll_edit(request, poll_id=None):
         answer_formset = AnswerEditFormSet(initial=answers)
     #Creating or editing
     else:
-        poll_form = PollEditForm(instance=poll)
-        answer_formset = AnswerEditFormSet(instance=(poll or Poll()))
+        if editing:
+            poll_form = PollEditForm(instance=poll)
+            answer_formset = AnswerEditFormSet(instance=poll)
+        else:
+            poll_form = PollEditForm()
+            answer_formset = AnswerEditFormSet(instance=Poll())
     
     return render(request, "polls/poll_edit.html", {
         'poll_form': poll_form,
@@ -152,22 +156,48 @@ def ajax_poll_detail(request, poll_id):
         return render(request, "polls/ajax_poll_detail.html", {
             'poll': poll,
         })
+        
+    #Put answers in a tuple and pass into the form
+    answer_choices = []
+    for answer in answers:
+        answer_choices.append((answer.id, answer.text))
                 
     #When user votes
     if request.method == 'POST':
+        
+        user_answer_form = None
+        #Determine which form to display based on how many answers user is allowed to select
+        if poll.number_answers_allowed != 1:
+            poll_voting_form = VotingCheckboxForm(request.POST, choices=answer_choices, user_input=poll.allow_user_answers)
+        else:
+            poll_voting_form = VotingRadioForm(request.POST, choices=answer_choices, user_input=poll.allow_user_answers)
+            
+        if poll.allow_user_answers:
+            user_answer_form = UserAnswerForm(request.POST)
+        
+        #print poll_voting_form.clean()
+        
+        #if poll_voting_form.is_valid():
+            #print 'valid'
+        #else:
+            ##poll_voting_form.full_clean()
+            #print 'non field errors ' + str(poll_voting_form.non_field_errors)
+            #print 'form errors ' + str(poll_voting_form.errors)
+            
         #Check an answer was selected
         selected = request.POST.getlist('answers')        
         
         #If no answer selected
-        if not selected:
-            return render(request, 'polls/ajax_poll_detail.html', {
-                'poll': poll,
-                'poll_voting_form': poll_voting_form,
-                'user_answer_form': user_answer_form,
-                'no_choice_error': True,
-            })
-        #Answers selected
-        else:
+        #if not selected:
+            #return render(request, 'polls/ajax_poll_detail.html', {
+                #'poll': poll,
+                #'poll_voting_form': poll_voting_form,
+                #'user_answer_form': user_answer_form,
+                #'no_choice_error': True,
+            #})
+        ##Answers selected
+        #else:
+        if poll_voting_form.is_valid():
             #Selected answers is within limit (0 == unlimited selections)
             if poll.number_answers_allowed == 0 or len(selected) <= poll.number_answers_allowed:
                 
@@ -222,6 +252,12 @@ def ajax_poll_detail(request, poll_id):
                     'user_answer_form': user_answer_form,
                     'too_many_answers_error': True,
                 })
+        else:
+            return render(request, "polls/ajax_poll_detail.html", {
+            'poll': poll,
+            'poll_voting_form': poll_voting_form,
+            'user_answer_form': user_answer_form,
+        })
         
         #set just voted session variable to true
         request.session['polls-just-voted'] = True
@@ -248,12 +284,12 @@ def ajax_poll_detail(request, poll_id):
         request.session['polls-already-voted'] = True
         return HttpResponseRedirect(reverse('polls_poll_results', args=(poll_id,))) 
     elif can_vote or poll.repeat_voting == 'Unlimited' or not request.session['polls-already-voted'] or not next_vote_date:
-        
-        #Put answers in a tuple and pass into the form
-        answer_choices = []
-        for answer in answers:
-            answer_choices.append((answer.id, answer.text))            
-        
+
+        #randomizing answer order
+        if poll.randomize_answer_order:
+            #randomly order answers
+            answers = answers.order_by('?')
+            
         user_answer_form = None
         #Determine which form to display based on how many answers user is allowed to select
         if poll.number_answers_allowed != 1:
@@ -263,11 +299,6 @@ def ajax_poll_detail(request, poll_id):
             
         if poll.allow_user_answers:
             user_answer_form = UserAnswerForm()
-
-        #randomizing answer order
-        if poll.randomize_answer_order:
-            #randomly order answers
-            answers = answers.order_by('?')
 
         #If user just voted, display message
         #Check for session that says user just voted
