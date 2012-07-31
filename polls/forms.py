@@ -59,26 +59,26 @@ class PollEditForm(forms.ModelForm):
     #def clean(self):
         #cleaned_data = super(PollEditForm, self).clean()
         
-        #if self._errors:
-            #raise forms.ValidationError('Please complete the entire form')
-        
         #return cleaned_data
         
 
 class VotingRadioForm(forms.Form):
-    answers = forms.ChoiceField(widget=RadioSelect, required=True)   
+    answers = forms.ChoiceField(widget=RadioSelect, required=True)
+    user_answer = forms.CharField()
     
     def __init__(self, *args, **kwargs):
 
         choices = kwargs.pop('choices', None)
-        user_input = kwargs.pop('user_input', False)
+        user_input_allowed = kwargs.pop('user_input', False)
         super(VotingRadioForm, self).__init__(*args, **kwargs)
         
         if choices:     
             self.fields['answers'].choices = choices
             
-        if user_input:
+        if user_input_allowed:
             self.fields['answers'].choices.append(('0', 'Other'))
+        else:
+            self.fields['user_answer'].widget = forms.HiddenInput()
             
     def clean(self):
         cleaned_data = super(VotingRadioForm, self).clean()
@@ -91,31 +91,42 @@ class VotingRadioForm(forms.Form):
     
 class VotingCheckboxForm(forms.Form):
     answers = forms.MultipleChoiceField(widget=CheckboxSelectMultiple, required=True)
+    user_answer = forms.CharField()
     
     def __init__(self, *args, **kwargs):
 
         choices = kwargs.pop('choices', None)
         selected_answers = kwargs.pop('selected_answers', None)
-        user_input = kwargs.pop('user_input', False)
-        super(VotingCheckboxForm, self).__init__(*args, **kwargs)
+        user_input_allowed = kwargs.pop('user_input', False)
+        #only needed for checkbox form
+        self.allowed_answers = kwargs.pop('allowed_answers', 1)
         
-        #for selected in 
+        super(VotingCheckboxForm, self).__init__(*args, **kwargs)
         
         if choices:     
             self.fields['answers'].choices = choices
+            #Used when errors occur, and selections need to remain
             self.fields['answers'].initial = selected_answers
         
-        if user_input:
+        if user_input_allowed:
             self.fields['answers'].choices.append(('0', 'Others'))
+        else:
+            self.fields['user_answer'].widget = forms.HiddenInput()
             
     def clean(self):
         cleaned_data = super(VotingCheckboxForm, self).clean()
         answers = cleaned_data.get('answers')
         
         if not answers:
-            raise forms.ValidationError('You must select a choice')
+            raise forms.ValidationError('You didn\'t select a choice')
+            
+        #User entering other answer.
+        if '0' in answers:
+            #user input field is blank
+            if not self.cleaned_data.get('user_answer'):
+                raise forms.ValidationError('You need to enter an answer')
+            
+        if len(answers) >= self.allowed_answers:
+            raise forms.ValidationError('You may only select %s answers. Remove additional selections and submit your vote.' % (self.allowed_answers))
         
         return cleaned_data        
-
-class UserAnswerForm(forms.Form):
-    user_answer = forms.CharField()

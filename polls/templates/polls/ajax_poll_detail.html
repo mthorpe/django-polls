@@ -29,28 +29,12 @@
     {% endif %}
     </p>
 
-    {% if no_choice_error %}
-        <p>You didn't select a choice.</p>
-    {% endif %}
-    
-    
-    
-    {% if too_many_answers_error %}
-        <p>
-        You may only select {{ poll.get_number_answers_allowed_display }} answers.
-        Remove additional selections and submit your vote.
-        </p>
-    {% endif %}
-
+    <p>{{ poll_voting_form.non_field_errors }}</p>
     <form id="poll-form" action="" method="post">
     {% csrf_token %}
-    {{ poll_voting_form.non_field_errors }}
     <table>
     {% for field in poll_voting_form %}
-        {{ field.label_tag }} {{ field }}
-    {% endfor %}
-    {% for field in user_answer_form %}
-        {{ field }}
+        {# {{ field.label_tag }} #} {{ field }}
     {% endfor %}
         <tr>
             <td><input id="vote-button" type="submit" value="Vote" /></td>

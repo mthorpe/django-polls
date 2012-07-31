@@ -17,7 +17,6 @@ from django.contrib.auth.decorators import login_required
 from datetime import timedelta
 
 from polls.forms import PollEditForm, AnswerEditFormSet, VotingRadioForm, VotingCheckboxForm
-from polls.forms import UserAnswerForm
 from polls.models import Poll, Answer, UserAnswer
 from polls.templatetags.polls_extras import percentage
 
@@ -55,11 +54,10 @@ def poll_edit(request, poll_id=None):
                 answer_formset.save()
                 return HttpResponseRedirect(reverse('polls_ajax_poll_detail', args=(poll.id,)))
 
-        #If any errors, rerender the page with error warning
+        #If any errors, rerender the page
         return render(request, 'polls/poll_edit.html', {
             'poll_form': poll_form,
             'answer_formset': answer_formset,
-            'errors': True,
         })
          
     #When copying
@@ -97,7 +95,6 @@ def poll_edit(request, poll_id=None):
     return render(request, "polls/poll_edit.html", {
         'poll_form': poll_form,
         'answer_formset': answer_formset,
-        'errors': False,
     })
     
 def poll_results(request, poll_id=None):  
@@ -165,38 +162,15 @@ def ajax_poll_detail(request, poll_id):
     #When user votes
     if request.method == 'POST':
         
-        user_answer_form = None
         #Determine which form to display based on how many answers user is allowed to select
         if poll.number_answers_allowed != 1:
-            poll_voting_form = VotingCheckboxForm(request.POST, choices=answer_choices, user_input=poll.allow_user_answers)
+            poll_voting_form = VotingCheckboxForm(request.POST, choices=answer_choices, user_input=poll.allow_user_answers, allowed_answers=poll.number_answers_allowed)
         else:
             poll_voting_form = VotingRadioForm(request.POST, choices=answer_choices, user_input=poll.allow_user_answers)
-            
-        if poll.allow_user_answers:
-            user_answer_form = UserAnswerForm(request.POST)
-        
-        #print poll_voting_form.clean()
-        
-        #if poll_voting_form.is_valid():
-            #print 'valid'
-        #else:
-            ##poll_voting_form.full_clean()
-            #print 'non field errors ' + str(poll_voting_form.non_field_errors)
-            #print 'form errors ' + str(poll_voting_form.errors)
             
         #Check an answer was selected
         selected = request.POST.getlist('answers')        
         
-        #If no answer selected
-        #if not selected:
-            #return render(request, 'polls/ajax_poll_detail.html', {
-                #'poll': poll,
-                #'poll_voting_form': poll_voting_form,
-                #'user_answer_form': user_answer_form,
-                #'no_choice_error': True,
-            #})
-        ##Answers selected
-        #else:
         if poll_voting_form.is_valid():
             #Selected answers is within limit (0 == unlimited selections)
             if poll.number_answers_allowed == 0 or len(selected) <= poll.number_answers_allowed:
@@ -238,25 +212,20 @@ def ajax_poll_detail(request, poll_id):
                 for selection in selected:
                     initial_selected[selection] = True
                 
-                user_answer_form = None
                 #Only need for checkboxes... radio buttons can't be over limit
                 if not poll.number_answers_allowed == 1:
-                    poll_voting_form = VotingCheckboxForm(choices=answer_choices, user_input=False, selected_answers=initial_selected)
+                    poll_voting_form = VotingCheckboxForm(choices=answer_choices, user_input=False, selected_answers=initial_selected, allowed_answers=poll.number_answers_allowed)
                     if poll.allow_user_answers:
-                        poll_voting_form = VotingCheckboxForm(choices=answer_choices, user_input=True, selected_answers=initial_selected)
-                        user_answer_form = UserAnswerForm()
+                        poll_voting_form = VotingCheckboxForm(choices=answer_choices, user_input=True, selected_answers=initial_selected, allowed_answers=poll.number_answers_allowed)
                 
                 return render(request, 'polls/ajax_poll_detail.html', {
                     'poll': poll,
                     'poll_voting_form': poll_voting_form,
-                    'user_answer_form': user_answer_form,
-                    'too_many_answers_error': True,
                 })
         else:
             return render(request, "polls/ajax_poll_detail.html", {
             'poll': poll,
             'poll_voting_form': poll_voting_form,
-            'user_answer_form': user_answer_form,
         })
         
         #set just voted session variable to true
@@ -290,15 +259,11 @@ def ajax_poll_detail(request, poll_id):
             #randomly order answers
             answers = answers.order_by('?')
             
-        user_answer_form = None
         #Determine which form to display based on how many answers user is allowed to select
         if poll.number_answers_allowed != 1:
-            poll_voting_form = VotingCheckboxForm(choices=answer_choices, user_input=poll.allow_user_answers)
+            poll_voting_form = VotingCheckboxForm(choices=answer_choices, user_input=poll.allow_user_answers, allowed_answers=poll.number_answers_allowed)
         else:
             poll_voting_form = VotingRadioForm(choices=answer_choices, user_input=poll.allow_user_answers)
-            
-        if poll.allow_user_answers:
-            user_answer_form = UserAnswerForm()
 
         #If user just voted, display message
         #Check for session that says user just voted
@@ -312,7 +277,6 @@ def ajax_poll_detail(request, poll_id):
         return render(request, "polls/ajax_poll_detail.html", {
             'poll': poll,
             'poll_voting_form': poll_voting_form,
-            'user_answer_form': user_answer_form,
             'just_voted_message': just_voted_message,
         })  
 
