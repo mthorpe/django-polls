@@ -143,9 +143,10 @@ class VotingCheckboxForm(forms.Form):
             #user input field is blank
             if not self.cleaned_data.get('user_answer'):
                 raise forms.ValidationError('You need to enter an answer')
-            
-        if len(answers) >= self.allowed_answers:
-            raise forms.ValidationError('You may only select %s answers. Remove additional selections and submit your vote.' % (self.allowed_answers))
+        
+        if self.allowed_answers != 0:
+            if len(answers) > self.allowed_answers:
+                raise forms.ValidationError('You may only select %s answers. Remove additional selections and submit your vote.' % (self.allowed_answers))
         
         return cleaned_data
         
