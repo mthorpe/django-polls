@@ -40,14 +40,12 @@ def poll_edit(request, poll_id=None):
     if request.method == 'POST':
         
         poll_form = PollEditForm(request.POST, instance=poll)
-        answer_formset = AnswerEditFormSet(request.POST, instance=poll)
-        
+                
         if poll_form.is_valid():
             poll = poll_form.save(commit=False)
             poll.author = author
             poll.site = site
-
-                
+            answer_formset = AnswerEditFormSet(request.POST, instance=poll)    
             #the answer formset must be valid and 
             #the answers must change (no blanks) OR user must be editing
             if editing or answer_formset.has_changed() and answer_formset.is_valid():
@@ -246,7 +244,7 @@ def ajax_poll_detail(request, poll_id):
         #None means user can vote unlimited
         if next_vote_date:
             #Compare date to now for voting eligibility
-            if now.date <= next_vote_date.date:
+            if now.date() <= next_vote_date.date():
                 can_vote = False
     
     #if unable to vote, set already voted session variable to true
@@ -273,7 +271,7 @@ def ajax_poll_detail(request, poll_id):
         else:
             just_voted_message = True
             #delete the session
-            del request.session['polls-just-voted']               
+            del request.session['polls-just-voted']
         
         return render(request, "polls/ajax_poll_detail.html", {
             'poll': poll,
