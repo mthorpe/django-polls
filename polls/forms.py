@@ -1,6 +1,6 @@
 import datetime
 from django import forms
-from django.forms.models import inlineformset_factory
+from django.forms.models import inlineformset_factory, BaseInlineFormSet
 from django.forms.widgets import RadioSelect, CheckboxSelectMultiple, CheckboxInput
 from polls.models import Poll, Answer
 
@@ -56,10 +56,22 @@ class PollEditForm(forms.ModelForm):
             
         return p
         
-    #def clean(self):
-        #cleaned_data = super(PollEditForm, self).clean()
+    def clean(self):
+        cleaned_data = super(PollEditForm, self).clean()
+        question = cleaned_data.get('question')
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
         
-        #return cleaned_data
+        if not question:
+            self._errors['question'] = self.error_class([u'Question field cannot be blank'])
+        
+        if not start_date:
+            self._errors['start_date'] = self.error_class([u'Start date field cannot be blank'])
+        
+        if not end_date:
+            self._errors['end_date'] = self.error_class([u'End date field cannot be blank'])
+                
+        return cleaned_data
         
 
 class VotingRadioForm(forms.Form):
@@ -129,4 +141,5 @@ class VotingCheckboxForm(forms.Form):
         if len(answers) >= self.allowed_answers:
             raise forms.ValidationError('You may only select %s answers. Remove additional selections and submit your vote.' % (self.allowed_answers))
         
-        return cleaned_data        
+        return cleaned_data
+        

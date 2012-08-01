@@ -6,19 +6,13 @@
 <h3>Edit Poll</h3>
 {% endif %}
 
-{% if errors %}
-    <p>ERROR: Please fill out the entire form.</p>
-{% endif %}
-
-{% if form.non_field_errors %}
-    {{ form.errors }}
-{% endif %}
+<p>{{ poll_form.non_field_errors }}</p>
 
 <form class="form" id="create-poll-form" action="" method="POST">
 {% csrf_token %}
 
 <p>
-{{ poll_form.question.label }} {{ poll_form.question }}
+{{ poll_form.question.label }} {{ poll_form.question }} {{ poll_form.question.errors }}
 </p>
 <h4>Answers</h4>
 <div id="sortable-answer-list">
@@ -46,10 +40,8 @@
 
 <h4>Open and Close Times</h4>
 <p>
-{{ poll_form.start_date.label }}
-{{ poll_form.start_date }}
-{{ poll_form.end_date.label }}
-{{ poll_form.end_date }}
+{{ poll_form.start_date.label }} {{ poll_form.start_date }} {{ poll_form.start_date.errors }}
+{{ poll_form.end_date.label }} {{ poll_form.end_date }} {{ poll_form.end_date.errors }}
 </p>
 
 <h4>Results</h4>

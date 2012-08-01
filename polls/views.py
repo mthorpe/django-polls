@@ -40,12 +40,13 @@ def poll_edit(request, poll_id=None):
     if request.method == 'POST':
         
         poll_form = PollEditForm(request.POST, instance=poll)
+        answer_formset = AnswerEditFormSet(request.POST, instance=poll)
         
         if poll_form.is_valid():
             poll = poll_form.save(commit=False)
             poll.author = author
             poll.site = site
-            answer_formset = AnswerEditFormSet(request.POST, instance=poll)
+
                 
             #the answer formset must be valid and 
             #the answers must change (no blanks) OR user must be editing
