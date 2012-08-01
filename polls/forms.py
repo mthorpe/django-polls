@@ -5,7 +5,13 @@ from django.forms.widgets import RadioSelect, CheckboxSelectMultiple, CheckboxIn
 from polls.models import Poll, Answer
 
 
-AnswerEditFormSet = inlineformset_factory(Poll, Answer, fields=('text','id',), extra=4, max_num=10)
+class BaseAnswerEditFormSet(BaseInlineFormSet):
+    def save(self, commit=True):
+        f = super(BaseAnswerEditFormSet, self).save()
+        print 'save'
+        print self.cleaned_data
+
+AnswerEditFormSet = inlineformset_factory(Poll, Answer, fields=('text','id',), extra=4, max_num=10, formset=BaseAnswerEditFormSet)
 
 class PollEditForm(forms.ModelForm):
     
@@ -76,7 +82,7 @@ class PollEditForm(forms.ModelForm):
 
 class VotingRadioForm(forms.Form):
     answers = forms.ChoiceField(widget=RadioSelect, required=True)
-    user_answer = forms.CharField()
+    user_answer = forms.CharField(required=False)
     
     def __init__(self, *args, **kwargs):
 
@@ -103,7 +109,7 @@ class VotingRadioForm(forms.Form):
     
 class VotingCheckboxForm(forms.Form):
     answers = forms.MultipleChoiceField(widget=CheckboxSelectMultiple, required=True)
-    user_answer = forms.CharField()
+    user_answer = forms.CharField(required=False)
     
     def __init__(self, *args, **kwargs):
 
