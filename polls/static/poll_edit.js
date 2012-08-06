@@ -93,24 +93,21 @@ addEvent('domready', function () {
         
         var deleteAnswerField = function (element) {
             
-            //answer id # - off by 1
+            //answer id #
             answerId = Number(element.id);
             
             //parent is the list element
             var parent = element.getParent();
-            //destroying parent, removing elements
-            //parent.destroy();
+            //hide the element
             parent.hide();
             
             deleteCheckbox = $('id_answers-' + answerId + '-DELETE');
+            //selecting the checkbox uses built in functionality from django
             deleteCheckbox.setProperty('checked', true);
             
             //Off by 1 element numbers, decrease by 1 after deleting elements
             elementNumber = Number(totalForms.value) - 1;
             totalForms.setProperty('value', elementNumber);
-            
-            //reorderAnswers
-            //reorderAnswers();
         }
         
         var answerOrder = function () {
@@ -130,56 +127,5 @@ addEvent('domready', function () {
                 });
             });
         }
-        
-        /*var reorderAnswers = function () {
-            //id's start at 0 and increment after the last hidden element is reached.
-            count = 0;
-            answerList.getChildren('li').each(function(li) {
-                li.getChildren('input').each(function(input) {
-                    //rename the id's and names of the input elements after sorting
-                   if (input.type == 'text') {
-                       //ignore blank fields
-                        if (input.value) {
-                            if (input.id.substr(-4,4) == 'text') {
-                                input.setProperties({
-                                    'id': 'id_answers-' + count + '-text',
-                                    'name': 'answers-' + count + '-text'
-                                });
-                            } else if (input.id.substr(-5,5) == 'ORDER') {
-                                //input.setProperty('id', 'id_answers-' + count+1 + '-ORDER');
-                                //input.setProperty('name', 'answers-' + count+1 + '-ORDER');
-                                order = count + 1;
-                                //input.setProperty('value', order);
-                                console.log(input);
-                                input.removeProperty('value');
-                                input.setProperty('value',order);
-                                console.log(input.value);
-                            }
-                        }
-                    } else if (input.type == 'button') {
-                        input.setProperty('id', count);
-                    } else if (input.type == 'checkbox') {
-                        input.setProperty('id', 'id_answers-' + count + '-DELETE');
-                        input.setProperty('name', 'answers-' + count + '-DELETE');
-                    } else if (input.type == 'hidden') {
-                        //Two hidden fields. Need to know if it's id or poll
-                        if (input.id.substr(-2,2) == 'id') {
-                            input.setProperty('id', 'id_answers-' + count + '-id');
-                            input.setProperty('name', 'answers-' + count + '-id');
-                        } else {
-                            input.setProperty('id', 'id_answers-' + count + '-poll');
-                            input.setProperty('name', 'answers-' + count + '-poll');
-                            count = count + 1;
-                        }
-                    }
-                });
-            });
-        }*/
-        
-         pollEditForm.addEvent('submit', function (evt) {
-             
-            // reorderAnswers();
-             //evt.stop();
-         });
     } 
 });
