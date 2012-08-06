@@ -45,19 +45,20 @@ def poll_edit(request, poll_id=None):
             poll = poll_form.save(commit=False)
             poll.author = author
             poll.site = site
-            answer_formset = AnswerEditFormSet(request.POST, instance=poll)    
+            answer_formset = AnswerEditFormSet(request.POST, instance=poll)
+            
             #the answer formset must be valid and 
             #the answers must change (no blanks) OR user must be editing
-            if editing or answer_formset.has_changed() and answer_formset.is_valid():
+            #if editing or answer_formset.has_changed() and answer_formset.is_valid():
+            answer_formset.clean()
+            if answer_formset.is_valid():
                 poll.save()
                 answer_formset.save()
                 return HttpResponseRedirect(reverse('polls_ajax_poll_detail', args=(poll.id,)))
-
-        #If any errors, rerender the page
-        return render(request, 'polls/poll_edit.html', {
-            'poll_form': poll_form,
-            'answer_formset': answer_formset,
-        })
+        #errors - the answer formset needs to keep post data when showing errors
+        else:
+            answer_formset = AnswerEditFormSet(request.POST)
+            answer_formset.clean()
          
     #When copying
     elif request.GET.get('copy_id'):
