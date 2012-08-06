@@ -20,14 +20,15 @@
     {{ answer_formset.management_form }}
     {% for form in answer_formset %}
         <li>
-        {{ form.text }}
-        <input id="{{ forloop.counter }}" class="delete-answer-button" type="button" value="Delete">
-        </li>
+        {{ form.text }} {{ form.DELETE }} {{ form.ORDER }}
+        <input id="{{ forloop.counter0 }}" class="delete-answer-button" type="button" value="Delete">
+        
         {# hidden fields needed for editing form #}
         {% for hidden in form.hidden_fields %}
             {{ hidden }}
         {% endfor %}
     {% endfor %}
+        </li>
     </ul>
 </div>
 <input id="add-answer-button" type="button" value="Add Answer">
