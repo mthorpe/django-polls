@@ -1,17 +1,36 @@
 import datetime
 from django import forms
-from django.forms.models import inlineformset_factory, BaseInlineFormSet
+from django.forms.models import inlineformset_factory
 from django.forms.widgets import RadioSelect, CheckboxSelectMultiple, CheckboxInput
 from polls.models import Poll, Answer
 
 
-class BaseAnswerEditFormSet(BaseInlineFormSet):
+class AnswerEditForm(forms.ModelForm):
+    
+    class Meta:
+        model = Answer
+        exclude = ('votes')
+    
     def save(self, commit=True):
-        f = super(BaseAnswerEditFormSet, self).save()
-        print 'save'
-        print self.cleaned_data
+        f = super(AnswerEditForm, self).save()
+        
+        print 'save ', self.cleaned_data
+        
+        if self.cleaned_data['ORDER']:
+            f._order = self.cleaned_data['ORDER']
+        
+        if commit:
+            f.save()
+        
+    def clean(self):
+        
+        cleaned_data = super(AnswerEditForm, self).clean()
+        if 'ORDER' in cleaned_data:
+            print 'clean data ', cleaned_data
+        
+        return cleaned_data
 
-AnswerEditFormSet = inlineformset_factory(Poll, Answer, fields=('text','id',), extra=4, max_num=10, formset=BaseAnswerEditFormSet)
+AnswerEditFormSet = inlineformset_factory(Poll, Answer, fields=('text','id',), extra=4, max_num=10, can_order=True, form=AnswerEditForm)
 
 class PollEditForm(forms.ModelForm):
     
