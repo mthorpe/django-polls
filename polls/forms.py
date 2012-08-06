@@ -14,8 +14,6 @@ class AnswerEditForm(forms.ModelForm):
     def save(self, commit=True):
         f = super(AnswerEditForm, self).save()
         
-        print 'save ', self.cleaned_data
-        
         if self.cleaned_data['ORDER']:
             f._order = self.cleaned_data['ORDER']
         
@@ -23,14 +21,12 @@ class AnswerEditForm(forms.ModelForm):
             f.save()
         
     def clean(self):
-        
         cleaned_data = super(AnswerEditForm, self).clean()
-        if 'ORDER' in cleaned_data:
-            print 'clean data ', cleaned_data
         
         return cleaned_data
 
-AnswerEditFormSet = inlineformset_factory(Poll, Answer, fields=('text','id',), extra=4, max_num=10, can_order=True, form=AnswerEditForm)
+AnswerEditFormSet = inlineformset_factory(Poll, Answer, fields=('text','id',), extra=4, max_num=10, can_order=True)
+#AnswerEditFormSet = inlineformset_factory(Poll, Answer, fields=('text','id',), extra=4, max_num=10, can_order=True, form=AnswerEditForm)
 
 class PollEditForm(forms.ModelForm):
     
