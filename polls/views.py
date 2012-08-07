@@ -8,7 +8,8 @@ from django.contrib.sites.models import get_current_site
 from django.contrib.auth.models import User
 from django.shortcuts import render, get_object_or_404
 from django.template import RequestContext
-from django.forms.models import inlineformset_factory
+from django.forms.util import ErrorList
+from django.forms import forms
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.core.cache import cache
@@ -49,16 +50,24 @@ def poll_edit(request, poll_id=None):
             
             #the answer formset must be valid and 
             #the answers must change (no blanks) OR user must be editing
-            #if editing or answer_formset.has_changed() and answer_formset.is_valid():
-            answer_formset.clean()
-            if answer_formset.is_valid():
+            
+            #answer_formset will always be valid. Need to check if it's changed when not editing
+            if editing or answer_formset.has_changed():
                 poll.save()
                 answer_formset.save()
                 return HttpResponseRedirect(reverse('polls_ajax_poll_detail', args=(poll.id,)))
+            else:
+                #Work around to show errors for answers
+                errors = poll_form._errors.setdefault(forms.NON_FIELD_ERRORS, ErrorList())
+                errors.append(u'Answers cannot be blank.')
         #errors - the answer formset needs to keep post data when showing errors
         else:
             answer_formset = AnswerEditFormSet(request.POST)
-            answer_formset.clean()
+            
+            if not editing and not answer_formset.has_changed():
+                #Work around to show errors for answers
+                errors = poll_form._errors.setdefault(forms.NON_FIELD_ERRORS, ErrorList())
+                errors.append(u'Answers cannot be blank')
          
     #When copying
     elif request.GET.get('copy_id'):
@@ -158,6 +167,9 @@ def ajax_poll_detail(request, poll_id):
     answer_choices = []
     for answer in answers:
         answer_choices.append((answer.id, answer.text))
+        
+    #session information
+    request.session.setdefault('polls-voting-history', {});
                 
     #When user votes
     if request.method == 'POST':
@@ -237,8 +249,7 @@ def ajax_poll_detail(request, poll_id):
     #GET Request
     #Assume user can vote until session info is checked
     can_vote = True
-    #session information
-    request.session.setdefault('polls-voting-history', None);
+    
     #Determine if user has voted in this poll
     if poll.id in request.session['polls-voting-history']:
         next_vote_date = request.session['polls-voting-history'][poll.id]

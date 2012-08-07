@@ -3,6 +3,7 @@ from django import forms
 from django.forms.models import inlineformset_factory
 from django.forms.widgets import RadioSelect, CheckboxSelectMultiple, CheckboxInput
 from polls.models import Poll, Answer
+from django.forms.util import ErrorList
 
 
 class AnswerEditForm(forms.ModelForm):
@@ -83,15 +84,20 @@ class PollEditForm(forms.ModelForm):
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
         
+        errors = []
+        
         if not question:
-            self._errors['question'] = self.error_class([u'Question field cannot be blank'])
+            errors.append('Question field cannot be blank')
         
         if not start_date:
-            self._errors['start_date'] = self.error_class([u'Start date field cannot be blank'])
+            errors.append('Start date field cannot be blank')
         
         if not end_date:
-            self._errors['end_date'] = self.error_class([u'End date field cannot be blank'])
-                
+            errors.append('End date field cannot be blank')
+        
+        if errors:
+            raise forms.ValidationError(errors)
+        
         return cleaned_data
         
 
@@ -118,7 +124,7 @@ class VotingRadioForm(forms.Form):
         answers = cleaned_data.get('answers')
         
         if not answers:
-            raise forms.ValidationError('You must select a choice')
+            raise forms.ValidationError('You must select a choice.')
         
         return cleaned_data   
     
@@ -151,13 +157,13 @@ class VotingCheckboxForm(forms.Form):
         answers = cleaned_data.get('answers')
         
         if not answers:
-            raise forms.ValidationError('You didn\'t select a choice')
+            raise forms.ValidationError('You must select a choice.')
             
         #User entering other answer.
         if '0' in answers:
             #user input field is blank
             if not self.cleaned_data.get('user_answer'):
-                raise forms.ValidationError('You need to enter an answer')
+                raise forms.ValidationError('You need to enter an answer.')
         
         if self.allowed_answers != 0:
             if len(answers) > self.allowed_answers:
