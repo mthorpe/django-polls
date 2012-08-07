@@ -17,17 +17,19 @@ from polls.forms import *
 def create_sample_poll(user, site):
     
     answer_set = []
+    #Used so the poll is always open when running tests
+    now = timezone.now()
     
     p = Poll.objects.create(
         question = 'Who is the biggest troll?',
-        start_date = '2012-07-01 09:00',
-        end_date = '2012-07-30 9:00',
+        start_date = now - timedelta(days=1),
+        end_date = now + timedelta(days=1),
         results_require_voting = True,
         results_displayed = 'Percentage',
         repeat_voting = 'Unlimited',
-        number_answers_allowed = 1,
+        number_answers_allowed = 2,
         randomize_answer_order = True,
-        allow_user_answers = False,
+        allow_user_answers = True,
         registration_required = False,
         author = user,
         site = site
@@ -75,7 +77,7 @@ class PollTests(TestCase):
             'repeat_voting': 'Unlimited',
             'number_selections_allowed': 0,
             'randomize_answer_order': True,
-            'allow_user_answers': False,
+            'allow_user_answers': True,
             'registration_required': False,
             'author': self.user,
             'site': self.site,
@@ -90,6 +92,12 @@ class PollTests(TestCase):
         response = self.client.post(reverse('polls_poll_create'), post_dict)
         #Should redirect to poll detail view
         self.assertEquals(response.status_code, 302)
+        
+        #Check poll was created with answers
+        polls = Poll.objects.all()
+        answers = Answer.objects.all()
+        self.assertEquals(polls.count(), 1)
+        self.assertEquals(answers.count(), 3)
         
     def test_poll_edit_form(self):
         
@@ -154,14 +162,6 @@ class PollTests(TestCase):
         })
         self.assertTrue(af.is_valid())
         
-    def test_user_answer_form(self):
-        
-        #Valid Form
-        ua = UserAnswerForm({
-            'user_answer': 'James',
-        }) 
-        self.assertTrue(ua.is_valid())
-        
     def test_delete_poll(self):
         self.client.login(username='user', password='password')
         poll = create_sample_poll(self.user, self.site)
@@ -171,6 +171,12 @@ class PollTests(TestCase):
             'poll_id': poll.id,
         }))
         self.assertEquals(response.status_code, 302)
+        
+        #Check poll and answers were removed
+        polls = Poll.objects.all()
+        answers = Answer.objects.all()
+        self.assertEquals(polls.count(), 0)
+        self.assertEquals(answers.count(), 0)
     
     def test_reset_poll(self):
         self.client.login(username='user', password='password')
@@ -198,7 +204,8 @@ class PollTests(TestCase):
         }), {'answers': 1,})
         
         answer = Answer.objects.get(pk=1)
-        #Votes should equal 21 (1 + the number set at - 20)
+        
+        #Votes should equal 21 (1 + the initial - 20)
         self.assertEquals(answer.votes, 21)
         self.assertEquals(response.status_code, 302)
         
@@ -208,11 +215,43 @@ class PollTests(TestCase):
         }))
         self.assertEquals(response.status_code, 200)
         
+        #Check for error message
+        self.assertFormError(response, 'poll_voting_form', None, 'You must select a choice.')
+        
         #Post too many votes
         response = self.client.post(reverse('polls_ajax_poll_detail', kwargs={
             'poll_id': poll.id,
-        }), {'answers': [1, 2],})
+        }), {'answers': [1, 2, 3],})
         self.assertEquals(response.status_code, 200)
-  
+        
+        #Check for error message
+        self.assertFormError(response, 'poll_voting_form', None, 
+            'You may only select 2 answers. Remove additional selections and submit your vote.')
+        
+    def test_user_answer_voting(self):
+        self.client.login(username='user', password='password')
+        #Create Poll
+        poll = create_sample_poll(self.user, self.site)
+        
+        #Post a vote with user answer
+        response = self.client.post(reverse('polls_ajax_poll_detail', kwargs={
+            'poll_id': poll.id,
+        }), {'answers': 0, 'user_answer': 'James'})
+        
+        user_answers = UserAnswer.objects.all()
+        
+        #One user_answer should be created
+        self.assertEquals(user_answers.count(), 1)
+        self.assertEquals(response.status_code, 302)
+        
+        #Select other, but don't enter an answer
+        response = self.client.post(reverse('polls_ajax_poll_detail', kwargs={
+            'poll_id': poll.id,
+        }), {'answers': 0, 'user_answer': ''})
+        self.assertEquals(response.status_code, 200)
+        
+        #Check for error message
+        self.assertFormError(response, 'poll_voting_form', None, 
+            'You need to enter an answer.')
         
         
