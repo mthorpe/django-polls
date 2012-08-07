@@ -55,7 +55,7 @@
         </tr>
     </table>
     {% if not poll.repeat_voting == 'Once' %}
-        <a id="back-to-poll-link" href="{% url polls_ajax_poll_detail poll.id %}" title="Back to Poll">Back to Poll</a>
+        <a id="back-to-poll-link-{{ poll.id }}" href="{% url polls_ajax_poll_detail poll.id %}" title="Back to Poll">Back to Poll</a>
     {% endif %}
 </div>
 {% endblock %}

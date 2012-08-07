@@ -30,19 +30,19 @@
     </p>
 
     <p>{{ poll_voting_form.non_field_errors }}</p>
-    <form id="poll-form" action="" method="post">
+    <form id="poll-form-{{ poll.id }}" action="" method="post">
     {% csrf_token %}
     <table>
     {% for field in poll_voting_form %}
         {# {{ field.label_tag }} #} {{ field }}
     {% endfor %}
         <tr>
-            <td><input id="vote-button" type="submit" value="Vote" /></td>
+            <td><input id="vote-button-{{ poll.id }}" type="submit" value="Vote" /></td>
         </tr>
     </table>
     </form>
 
         {% if not poll.results_require_voting and not poll.results_displayed == 'None'%}
-        <a id="view-results-link" href="{% url polls_poll_results poll.id %}" title="View Results">View Results</a>
+        <a id="view-results-link-{{ poll.id }}" href="{% url polls_poll_results poll.id %}" title="View Results">View Results</a>
         {% endif %}
 {% endif %}

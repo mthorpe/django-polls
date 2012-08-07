@@ -13,7 +13,7 @@ addEvent('domready', function () {
                 //Add functionality for View Results Link
                 viewResults(el, pollId, pollRequest);
                 //Add functionality for Back to Poll Link
-                backToPoll(pollRequest);
+                backToPoll(pollRequest, pollId);
             }
         });
         pollRequest.send();
@@ -21,7 +21,7 @@ addEvent('domready', function () {
     
     //Display the voting form within div (el)
     var pollFormVoting = function (el, pollId, pollRequest) {
-        var pollForm = $('poll-form');
+        var pollForm = $('poll-form-' + pollId);
         if (pollForm) {
             pollForm.addEvent('submit', function (evt) {
                 evt.stop();
@@ -29,7 +29,7 @@ addEvent('domready', function () {
                     url: '/polls/' + pollId + '/',
                     update: el,
                     onSuccess: function () {
-                        backToPoll(pollRequest);
+                        backToPoll(pollRequest, pollId);
                         pollFormVoting(el, pollId, pollRequest);
                         viewResults(el, pollId, pollRequest);
                     }
@@ -41,7 +41,7 @@ addEvent('domready', function () {
     
     //Display the view results within the div (el)
     var viewResults = function (el, pollId, pollRequest) {
-        var resultsLink = $('view-results-link');
+        var resultsLink = $('view-results-link-' + pollId);
         if (resultsLink) {
             resultsLink.addEvent('click', function (evt) {
                 evt.stop();
@@ -50,7 +50,7 @@ addEvent('domready', function () {
                     update: el,
                     method: 'get',
                     onSuccess: function () {
-                        backToPoll(pollRequest);
+                        backToPoll(pollRequest, pollId);
                     }
                 });
                 resultsRequest.send();
@@ -59,8 +59,8 @@ addEvent('domready', function () {
     };
     
     //Display the back to poll link within the div
-    var backToPoll = function (pollRequest) {  
-        var backToPollLink = $('back-to-poll-link');
+    var backToPoll = function (pollRequest, pollId) {  
+        var backToPollLink = $('back-to-poll-link-' + pollId);
         if (backToPollLink) {
             backToPollLink.addEvent('click', function (evt) {
                 evt.stop();
