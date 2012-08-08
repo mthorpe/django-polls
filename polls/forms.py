@@ -31,6 +31,10 @@ class BaseAnswerEditFormSet(BaseInlineFormSet):
     Used to validate the fields within AnswerEditFormSet
     Required to have at least 2 answers
     """
+    def is_valid(self):
+        #check the form is valid and that no errors exist
+        return super(BaseAnswerEditFormSet, self).is_valid() and not any([bool(e) for e in self._errors])
+    
     def clean(self):
         count = 0
         
@@ -41,7 +45,6 @@ class BaseAnswerEditFormSet(BaseInlineFormSet):
             except AttributeError:
                 pass
 
-                
         if count < 2:
             self._errors = 'You must have at least 2 answers'       
 
