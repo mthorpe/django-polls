@@ -47,14 +47,8 @@ def poll_edit(request, poll_id=None):
             poll.author = author
             poll.site = site
             answer_formset = AnswerEditFormSet(request.POST, instance=poll)
-            print 'poll ', poll
-            print 'answer_formset ', answer_formset
+            
             #the answer formset must be valid and 
-            #the answers must change (no blanks) OR user must be editing
-            
-            
-            #answer_formset will always be valid. Need to check if it's changed when not editing
-            #if editing or answer_formset.has_changed():
             if answer_formset.is_valid():
                 poll.save()
                 answer_formset.save()
@@ -66,8 +60,6 @@ def poll_edit(request, poll_id=None):
         #errors - the answer formset needs to keep post data when showing errors
         else:
             answer_formset = AnswerEditFormSet(request.POST)
-            
-            #print 'errors ', answer_formset._errors
             
             #if not editing and not answer_formset.has_changed():
             if not answer_formset.is_valid():
