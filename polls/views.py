@@ -47,27 +47,33 @@ def poll_edit(request, poll_id=None):
             poll.author = author
             poll.site = site
             answer_formset = AnswerEditFormSet(request.POST, instance=poll)
-            
+            print 'poll ', poll
+            print 'answer_formset ', answer_formset
             #the answer formset must be valid and 
             #the answers must change (no blanks) OR user must be editing
             
+            
             #answer_formset will always be valid. Need to check if it's changed when not editing
-            if editing or answer_formset.has_changed():
+            #if editing or answer_formset.has_changed():
+            if answer_formset.is_valid():
                 poll.save()
                 answer_formset.save()
                 return HttpResponseRedirect(reverse('polls_ajax_poll_detail', args=(poll.id,)))
             else:
-                #Work around to show errors for answers
+                #Work around to show errors with the poll form errors
                 errors = poll_form._errors.setdefault(forms.NON_FIELD_ERRORS, ErrorList())
-                errors.append(u'Answers cannot be blank.')
+                errors.append(answer_formset._errors)
         #errors - the answer formset needs to keep post data when showing errors
         else:
             answer_formset = AnswerEditFormSet(request.POST)
             
-            if not editing and not answer_formset.has_changed():
+            #print 'errors ', answer_formset._errors
+            
+            #if not editing and not answer_formset.has_changed():
+            if not answer_formset.is_valid():
                 #Work around to show errors for answers
                 errors = poll_form._errors.setdefault(forms.NON_FIELD_ERRORS, ErrorList())
-                errors.append(u'Answers cannot be blank')
+                errors.append(answer_formset._errors)
          
     #When copying
     elif request.GET.get('copy_id'):
