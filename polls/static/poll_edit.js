@@ -19,6 +19,7 @@ addEvent('domready', function () {
         }
         
         answerList = $('answer-list');
+        totalForms = $('id_answers-TOTAL_FORMS');
         
         if (answerList) {
             sortables = new Sortables('#sortable-answer-list UL', {
@@ -30,12 +31,22 @@ addEvent('domready', function () {
                     answerOrder();
                 }
             });
+            
+            answerList.getChildren('li').each(function(li) {
+                li.getChildren('input').each(function(input) {
+                    //If the checkbox is selected, don't show the list element
+                    if (input.type == 'checkbox') {
+                        if (input.checked == true) {
+                            //hide the list element
+                            li.hide();
+                        }
+                    }
+                });
+            });
         }
         
         addAnswerButton = $('add-answer-button');
         if (addAnswerButton) {
-            totalForms = $('id_answers-TOTAL_FORMS');
-            
             addAnswerButton.addEvent('click', function () {
                 addAnswerField(answerList, totalForms);
             });
@@ -58,6 +69,20 @@ addEvent('domready', function () {
                 type: 'text',
                 name: 'answers-' + totalForms.value + '-text',
                 maxlength: '500'
+            }).inject(newListElement);
+            
+            //new checkbox field
+            var newCheckbox = new Element('input', {
+                id: 'id_answers-' + totalForms.value + '-DELETE',
+                type: 'checkbox',
+                name: 'answers-' + totalForms.value + '-DELETE',
+            }).inject(newListElement);
+            
+            //new order field
+            var newOrderField = new Element('input', {
+                id: 'id_answers-' + totalForms.value + '-ORDER',
+                type: 'text',
+                name: 'answers-' + totalForms.value + '-ORDER',
             }).inject(newListElement);
             
             //new delete button
