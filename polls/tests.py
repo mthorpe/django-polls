@@ -156,7 +156,7 @@ class PollTests(TestCase):
             'answers-0-text': 'Nick',
             'answers-1-text': 'Lunchbox',
             'answers-2-text': 'Ben',
-            'answers-TOTAL_FORMS': u'1',
+            'answers-TOTAL_FORMS': u'2',
             'answers-INITIAL_FORMS': u'0',
             'answers-MAX_NUM_FORMS': u'',
         })

@@ -129,10 +129,6 @@ addEvent('domready', function () {
             deleteCheckbox = $('id_answers-' + answerId + '-DELETE');
             //selecting the checkbox uses built in functionality from django
             deleteCheckbox.setProperty('checked', true);
-            
-            //Off by 1 element numbers, decrease by 1 after deleting elements
-            elementNumber = Number(totalForms.value) - 1;
-            totalForms.setProperty('value', elementNumber);
         }
         
         var answerOrder = function () {
