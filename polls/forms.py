@@ -1,33 +1,50 @@
 import datetime
 from django import forms
-from django.forms.models import inlineformset_factory
+from django.forms.models import inlineformset_factory, BaseInlineFormSet
 from django.forms.widgets import RadioSelect, CheckboxSelectMultiple, CheckboxInput
 from polls.models import Poll, Answer
-from django.forms.util import ErrorList
 
 
 class AnswerEditForm(forms.ModelForm):
-    
-    class Meta:
-        model = Answer
-        exclude = ('votes')
-    
+    """
+    Used to create the text form within the AnswerEditFormSet
+    Needed to set order when items are deleted or changed by user
+    """        
     def save(self, commit=True):
-        f = super(AnswerEditForm, self).save()
+        instance = super(AnswerEditForm, self).save(commit=False) 
         
         if self.cleaned_data['ORDER']:
-            f._order = self.cleaned_data['ORDER']
+            instance._order = self.cleaned_data['ORDER']
         
         if commit:
-            f.save()
+            instance.save()
+            
+        return instance
         
     def clean(self):
         cleaned_data = super(AnswerEditForm, self).clean()
         
         return cleaned_data
+        
+class BaseAnswerEditFormSet(BaseInlineFormSet):
+    """
+    Used to validate the fields within AnswerEditFormSet
+    Required to have at least 2 answers
+    """
+    def clean(self):
+        count = 0
+        
+        for form in self.forms:
+            try:
+                if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                    count += 1
+            except AttributeError:
+                pass
+        
+        if count < 2:
+            self._errors = 'You must have at least 2 answers'       
 
-AnswerEditFormSet = inlineformset_factory(Poll, Answer, fields=('text','id',), extra=4, max_num=10, can_order=True)
-#AnswerEditFormSet = inlineformset_factory(Poll, Answer, fields=('text','id',), extra=4, max_num=10, can_order=True, form=AnswerEditForm)
+AnswerEditFormSet = inlineformset_factory(Poll, Answer, fields=('text','id',), extra=4, max_num=10, can_order=True, formset=BaseAnswerEditFormSet, form=AnswerEditForm)
 
 class PollEditForm(forms.ModelForm):
     
