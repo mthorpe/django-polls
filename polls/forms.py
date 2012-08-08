@@ -40,11 +40,12 @@ class BaseAnswerEditFormSet(BaseInlineFormSet):
                     count += 1
             except AttributeError:
                 pass
-        
+
+                
         if count < 2:
             self._errors = 'You must have at least 2 answers'       
 
-AnswerEditFormSet = inlineformset_factory(Poll, Answer, fields=('text','id',), extra=4, max_num=10, can_order=True, formset=BaseAnswerEditFormSet, form=AnswerEditForm)
+AnswerEditFormSet = inlineformset_factory(Poll, Answer, fields=('text','id',), extra=2, max_num=10, can_order=True, formset=BaseAnswerEditFormSet, form=AnswerEditForm)
 
 class PollEditForm(forms.ModelForm):
     
